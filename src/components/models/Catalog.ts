@@ -27,7 +27,7 @@ export class Catalog {
       return product;
     }
 
-    throw new Error(`Продукт с id ${id} не найден.`);
+    throw new Error(`Товар с id ${id} не найден.`);
   }
 
   setSelectedProduct(product: IProduct): void {
