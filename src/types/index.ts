@@ -25,3 +25,10 @@ export interface IBuyer {
   phone: string;
   address: string;
 }
+
+export type TBuyerError = {
+  payment?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+};
