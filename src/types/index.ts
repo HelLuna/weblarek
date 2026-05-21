@@ -9,6 +9,21 @@ export interface IApi {
   ): Promise<T>;
 }
 
+export type ProductListResponse = {
+  total: number;
+  items: IProduct[];
+};
+
+export type OrderRequest = IBuyer & {
+  total: number;
+  items: string[];
+};
+
+export type OrderResponse = {
+  id: string;
+  total: number;
+};
+
 export interface IProduct {
   id: string;
   description: string;
