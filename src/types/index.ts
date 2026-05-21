@@ -9,17 +9,17 @@ export interface IApi {
   ): Promise<T>;
 }
 
-export type ProductListResponse = {
+export type TProductListResponse = {
   total: number;
   items: IProduct[];
 };
 
-export type OrderRequest = IBuyer & {
+export type TOrderRequest = IBuyer & {
   total: number;
   items: string[];
 };
 
-export type OrderResponse = {
+export type TOrderResponse = {
   id: string;
   total: number;
 };

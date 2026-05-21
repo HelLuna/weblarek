@@ -1,7 +1,7 @@
 import {
-  ProductListResponse,
-  OrderRequest,
-  OrderResponse,
+  TProductListResponse,
+  TOrderRequest,
+  TOrderResponse,
   IApi,
 } from "../../types/index.ts";
 
@@ -12,11 +12,11 @@ export class Communicator {
     this.api = api;
   }
 
-  get(): Promise<ProductListResponse> {
-    return this.api.get<ProductListResponse>("/product/");
+  get(): Promise<TProductListResponse> {
+    return this.api.get<TProductListResponse>("/product/");
   }
 
-  post(orderData: OrderRequest): Promise<OrderResponse> {
-    return this.api.post<OrderResponse>("/order/", orderData);
+  post(orderData: TOrderRequest): Promise<TOrderResponse> {
+    return this.api.post<TOrderResponse>("/order/", orderData);
   }
 }
