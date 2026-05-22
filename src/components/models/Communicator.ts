@@ -12,11 +12,11 @@ export class Communicator {
     this.api = api;
   }
 
-  get(): Promise<TProductListResponse> {
+  getProductList(): Promise<TProductListResponse> {
     return this.api.get<TProductListResponse>("/product/");
   }
 
-  post(orderData: TOrderRequest): Promise<TOrderResponse> {
+  postOrderData(orderData: TOrderRequest): Promise<TOrderResponse> {
     return this.api.post<TOrderResponse>("/order/", orderData);
   }
 }
