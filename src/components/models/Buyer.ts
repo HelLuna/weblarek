@@ -1,13 +1,13 @@
 import { TPayment, IBuyer, TBuyerError } from "../../types/index.ts";
 
-export class Buyer implements IBuyer {
-  payment: TPayment;
-  email: string;
-  phone: string;
-  address: string;
+export class Buyer {
+  private payment: TPayment | "";
+  private email: string;
+  private phone: string;
+  private address: string;
 
   constructor(
-    payment: TPayment = "",
+    payment: TPayment | "" = "",
     email: string = "",
     phone: string = "",
     address: string = "",
@@ -18,20 +18,20 @@ export class Buyer implements IBuyer {
     this.address = address;
   }
 
-  setInfo(newData: Partial<Buyer>): void {
-    if (newData.payment) {
+  setInfo(newData: Partial<IBuyer>): void {
+    if (newData.payment !== undefined) {
       this.payment = newData.payment;
     }
 
-    if (newData.email) {
+    if (newData.email !== undefined) {
       this.email = newData.email;
     }
 
-    if (newData.phone) {
+    if (newData.phone !== undefined) {
       this.phone = newData.phone;
     }
 
-    if (newData.address) {
+    if (newData.address !== undefined) {
       this.address = newData.address;
     }
   }

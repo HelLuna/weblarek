@@ -1,7 +1,7 @@
 import { IProduct } from "../../types/index.ts";
 
 export class Basket {
-  protected items: IProduct[];
+  private items: IProduct[];
 
   constructor(items: IProduct[] = []) {
     this.items = [...items];
