@@ -163,7 +163,7 @@ interface IBuyer {
 
 - `setProducts(products: IProduct[]): void` - сохраняет массив товаров, полученный в параметрах метода, в переменную `products`.
 - `getProducts(): IProduct[]` - получает копию массива товаров `products`.
-- `getProductById(id: string): IProduct` - получает товар по его id. Если товар не найден, то отображается ошибка.
+- `getProductById(id: string): IProduct | undefined` - получает товар по его id. Если товар не найден, то возвращает `undefined`.
 - `setSelectedProduct(product: IProduct): void` - сохраняет товар для подробного отображения в `selectedProduct`.
 - `getSelectedProduct(): IProduct | null` - получает товар для подробного отображения.
 
@@ -199,14 +199,14 @@ interface IBuyer {
 
 Поля класса:
 
-- `payment: TPayment` - тип оплаты. `TPayment` может принимать одно из следующих значений: `"card"`, `"cash"`, `""`.
+- `payment: TPayment | ""` - тип оплаты. `TPayment` может принимать одно из следующих значений: `"card"`, `"cash"`.
 - `email: string` - электронная почта.
 - `phone: string` - номер телефона.
 - `address: string` - адрес.
 
 Методы класса:
 
-- `setInfo(newData: Partial<Buyer>): void` - сохраняет переданные данные в модель.
+- `setInfo(newData: Partial<IBuyer>): void` - сохраняет переданные данные в модель.
 - `getInfo(): IBuyer` - возвращает все данные покупателя в виде объекта.
 - `clear(): void` - очищает данные покупателя.
 - `validateInfo(): TBuyerError` - производит валидацию данных. Возвращает объект типа `TBuyerError`, в котором могут присутствовать поля, соответствующие полям класса. Значения этих полей - текст ошибки. Если объект пуст, то ошибок не обнаружено.
