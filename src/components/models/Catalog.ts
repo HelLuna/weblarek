@@ -20,14 +20,8 @@ export class Catalog {
     return this.products;
   }
 
-  getProductById(id: string): IProduct {
-    const product = this.products.find((product) => product.id === id);
-
-    if (product) {
-      return product;
-    }
-
-    throw new Error(`Товар с id ${id} не найден.`);
+  getProductById(id: string): IProduct | undefined {
+    return this.products.find((product) => product.id === id);
   }
 
   setSelectedProduct(product: IProduct): void {
