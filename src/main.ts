@@ -7,6 +7,11 @@ import { Api } from "./components/base/Api.ts";
 import { apiProducts } from "./utils/data.ts";
 import { API_URL } from "./utils/constants.ts";
 
+import { Header } from "./components/views/Header.ts";
+import { EventEmitter } from "./components/base/Events.ts";
+import { ensureElement, createElement, ensureAllElements } from "./utils/utils.ts";
+import { Gallery } from "./components/views/Gallery.ts";
+
 const api = new Api(API_URL);
 const catalogModel = new Catalog();
 const basketModel = new Basket();
@@ -24,9 +29,7 @@ console.log(
 );
 
 console.log("Текущий выбранный элемент: ", catalogModel.getSelectedProduct());
-let catalogProduct = catalogModel.getProductById(
-  "c101ab44-ed99-4a54-990d-47aa2bb4e7d9",
-);
+let catalogProduct = catalogModel.getProductById("c101ab44-ed99-4a54-990d-47aa2bb4e7d9");
 if (catalogProduct !== undefined) {
   catalogModel.setSelectedProduct(catalogProduct);
 }
@@ -35,23 +38,17 @@ console.log("Изменили выбранный элемент: ", catalogModel
 
 // Проверка модели данных Basket
 console.log("\n------Проверка модели Basket------");
-let basketProduct = catalogModel.getProductById(
-  "c101ab44-ed99-4a54-990d-47aa2bb4e7d9",
-);
+let basketProduct = catalogModel.getProductById("c101ab44-ed99-4a54-990d-47aa2bb4e7d9");
 if (basketProduct !== undefined) {
   basketModel.addItem(basketProduct);
 }
 
-basketProduct = catalogModel.getProductById(
-  "b06cde61-912f-4663-9751-09956c0eed67",
-);
+basketProduct = catalogModel.getProductById("b06cde61-912f-4663-9751-09956c0eed67");
 if (basketProduct !== undefined) {
   basketModel.addItem(basketProduct);
 }
 
-basketProduct = catalogModel.getProductById(
-  "854cef69-976d-4c2a-a18c-2aa45046c390",
-);
+basketProduct = catalogModel.getProductById("854cef69-976d-4c2a-a18c-2aa45046c390");
 if (basketProduct !== undefined) {
   basketModel.addItem(basketProduct);
 }
@@ -60,9 +57,7 @@ console.log("Сейчас в корзине: ", basketModel.getItems());
 console.log("Общая цена: ", basketModel.getTotalPrice());
 console.log("Количество товаров: ", basketModel.getAmount());
 
-basketProduct = catalogModel.getProductById(
-  "c101ab44-ed99-4a54-990d-47aa2bb4e7d9",
-);
+basketProduct = catalogModel.getProductById("c101ab44-ed99-4a54-990d-47aa2bb4e7d9");
 if (basketProduct !== undefined) {
   basketModel.removeItem(basketProduct);
 }
@@ -105,10 +100,7 @@ buyerModel.setInfo({
   phone: "+7 (812) 765 43-21",
   payment: "cash",
 });
-console.log(
-  "Добавили email, изменили телефон и способ оплаты: ",
-  buyerModel.getInfo(),
-);
+console.log("Добавили email, изменили телефон и способ оплаты: ", buyerModel.getInfo());
 console.log("Результат валидации: ", buyerModel.validateInfo());
 
 buyerModel.clear();
@@ -127,30 +119,22 @@ await communicator
     console.log("Ошибка при загрузке данных: ", err);
   });
 
-basketProduct = catalogModel.getProductById(
-  "54df7dcb-1213-4b3c-ab61-92ed5f845535",
-);
+basketProduct = catalogModel.getProductById("54df7dcb-1213-4b3c-ab61-92ed5f845535");
 if (basketProduct !== undefined) {
   basketModel.addItem(basketProduct);
 }
 
-basketProduct = catalogModel.getProductById(
-  "6a834fb8-350a-440c-ab55-d0e9b959b6e3",
-);
+basketProduct = catalogModel.getProductById("6a834fb8-350a-440c-ab55-d0e9b959b6e3");
 if (basketProduct !== undefined) {
   basketModel.addItem(basketProduct);
 }
 
-basketProduct = catalogModel.getProductById(
-  "90973ae5-285c-4b6f-a6d0-65d1d760b102",
-);
+basketProduct = catalogModel.getProductById("90973ae5-285c-4b6f-a6d0-65d1d760b102");
 if (basketProduct !== undefined) {
   basketModel.addItem(basketProduct);
 }
 
-basketProduct = catalogModel.getProductById(
-  "48e86fc0-ca99-4e13-b164-b98d65928b53",
-);
+basketProduct = catalogModel.getProductById("48e86fc0-ca99-4e13-b164-b98d65928b53");
 if (basketProduct !== undefined) {
   basketModel.addItem(basketProduct);
 }
@@ -172,11 +156,57 @@ const order = {
 
 console.log("Объект, отправляемый на сервер: ", order);
 
-communicator
-  .postOrderData(order)
-  .then((res) => {
-    console.log("Заказ создан: ", res);
-  })
-  .catch((err) => {
-    console.log("Ошибка при создании заказа: ", err);
-  });
+// communicator
+//   .postOrderData(order)
+//   .then((res) => {
+//     console.log("Заказ создан: ", res);
+//   })
+//   .catch((err) => {
+//     console.log("Ошибка при создании заказа: ", err);
+//   });
+
+// Проверка работы представлений
+console.log("\n\n------Проверка работы представлений------");
+console.log("------Проверка Header------");
+const events = new EventEmitter();
+
+const headerContainer = ensureElement<HTMLElement>(".header");
+events.on("basket:open", () => console.log("open!"));
+const header = new Header(events, headerContainer);
+
+console.log(header.render());
+console.log(
+  `Текущее значение счётчика: ${ensureElement<HTMLElement>(".header__basket-counter").textContent}`,
+);
+header.counter = 4;
+console.log(
+  `Изменили счётчик: ${ensureElement<HTMLElement>(".header__basket-counter").textContent}`,
+);
+
+console.log("\n\n------Проверка Gallery------");
+const galleryContainer = ensureElement<HTMLElement>(".gallery");
+const gallery = new Gallery(galleryContainer);
+console.log(gallery.render());
+
+const card1 = createElement<HTMLButtonElement>("button");
+card1.className = "gallery__item card";
+card1.textContent = "Товар №1";
+const card2 = createElement<HTMLButtonElement>("button");
+card2.className = "gallery__item card";
+card2.textContent = "Товар №2";
+const firstCards = [card1, card2];
+gallery.catalog = firstCards;
+console.log("Карточки: ", ensureAllElements(".gallery__item", galleryContainer));
+
+const card3 = createElement<HTMLButtonElement>("button");
+card3.className = "gallery__item card";
+card3.textContent = "Новый товар А";
+const card4 = createElement<HTMLButtonElement>("button");
+card4.className = "gallery__item card";
+card4.textContent = "Новый товар Б";
+const card5 = createElement<HTMLButtonElement>("button");
+card5.className = "gallery__item card";
+card5.textContent = "Новый товар В";
+const secondCards = [card3, card4, card5];
+gallery.catalog = secondCards;
+console.log("Изменили карточки: ", ensureAllElements(".gallery__item", galleryContainer));
