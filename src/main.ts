@@ -1,20 +1,26 @@
 import "./scss/styles.scss";
 import { Catalog } from "./components/models/Catalog.ts";
-import { Basket } from "./components/models/Basket.ts";
+import { Basket as BasketModel } from "./components/models/Basket.ts";
 import { Buyer } from "./components/models/Buyer.ts";
 import { Communicator } from "./components/models/Communicator.ts";
 import { Api } from "./components/base/Api.ts";
 import { apiProducts } from "./utils/data.ts";
-import { API_URL } from "./utils/constants.ts";
+import { API_URL, CDN_URL } from "./utils/constants.ts";
 
 import { Header } from "./components/views/Header.ts";
 import { EventEmitter } from "./components/base/Events.ts";
-import { ensureElement, createElement, ensureAllElements } from "./utils/utils.ts";
+import { ensureElement, createElement, ensureAllElements, cloneTemplate } from "./utils/utils.ts";
 import { Gallery } from "./components/views/Gallery.ts";
+import { Modal } from "./components/views/Modal.ts";
+import { CardCatalog } from "./components/views/Card/CardCatalog.ts";
+import { CardPreview } from "./components/views/Card/CardPreview.ts";
+import { CardBasket } from "./components/views/Card/CardBasket.ts";
+import { Basket } from "./components/views/Basket.ts";
+import { IProduct } from "./types/index.ts";
 
 const api = new Api(API_URL);
 const catalogModel = new Catalog();
-const basketModel = new Basket();
+const basketModel = new BasketModel();
 const buyerModel = new Buyer();
 const communicator = new Communicator(api);
 
@@ -167,14 +173,20 @@ console.log("Объект, отправляемый на сервер: ", order)
 
 // Проверка работы представлений
 console.log("\n\n------Проверка работы представлений------");
+basketModel.clear();
+
 console.log("------Проверка Header------");
 const events = new EventEmitter();
 
 const headerContainer = ensureElement<HTMLElement>(".header");
-events.on("basket:open", () => console.log("open!"));
+events.on("basket:open", () => {
+  modal.render({ content: renderBasket() });
+  modalContainer.classList.add("modal_active");
+  console.log("open basket!");
+});
 const header = new Header(events, headerContainer);
-
 console.log(header.render());
+
 console.log(
   `Текущее значение счётчика: ${ensureElement<HTMLElement>(".header__basket-counter").textContent}`,
 );
@@ -188,25 +200,145 @@ const galleryContainer = ensureElement<HTMLElement>(".gallery");
 const gallery = new Gallery(galleryContainer);
 console.log(gallery.render());
 
-const card1 = createElement<HTMLButtonElement>("button");
+const card1 = createElement<HTMLElement>("div");
 card1.className = "gallery__item card";
 card1.textContent = "Товар №1";
-const card2 = createElement<HTMLButtonElement>("button");
+const card2 = createElement<HTMLElement>("div");
 card2.className = "gallery__item card";
 card2.textContent = "Товар №2";
 const firstCards = [card1, card2];
 gallery.catalog = firstCards;
 console.log("Карточки: ", ensureAllElements(".gallery__item", galleryContainer));
 
-const card3 = createElement<HTMLButtonElement>("button");
+const card3 = createElement<HTMLElement>("div");
 card3.className = "gallery__item card";
 card3.textContent = "Новый товар А";
-const card4 = createElement<HTMLButtonElement>("button");
+const card4 = createElement<HTMLElement>("div");
 card4.className = "gallery__item card";
 card4.textContent = "Новый товар Б";
-const card5 = createElement<HTMLButtonElement>("button");
+const card5 = createElement<HTMLElement>("div");
 card5.className = "gallery__item card";
 card5.textContent = "Новый товар В";
 const secondCards = [card3, card4, card5];
 gallery.catalog = secondCards;
 console.log("Изменили карточки: ", ensureAllElements(".gallery__item", galleryContainer));
+
+console.log("\n\n------Проверка Modal------");
+const modalContainer = ensureElement<HTMLElement>(".modal");
+
+events.on("modal:close", () => {
+  modalContainer.classList.remove("modal_active");
+  console.log("close modal!");
+});
+
+const modal = new Modal(events, modalContainer);
+console.log(modal.render());
+
+console.log("\n\n------Проверка CardCatalog------");
+const cardCatalogTemplate = ensureElement<HTMLTemplateElement>("#card-catalog");
+
+events.on("catalog:changed", () => {
+  const itemCards = catalogModel.getProducts().map((item) => {
+    const card = new CardCatalog(cloneTemplate(cardCatalogTemplate), {
+      onClick: () => events.emit("card:select", item),
+    });
+
+    return card.render({
+      title: item.title,
+      price: item.price,
+      category: item.category,
+      image: `${CDN_URL}/${item.image}`,
+    });
+  });
+
+  gallery.render({ catalog: itemCards });
+});
+
+console.log("\n\n------Проверка CardPreview------");
+const cardPreviewTemplate = ensureElement<HTMLTemplateElement>("#card-preview");
+
+events.on("card:select", (item: IProduct) => {
+  const isUnavailable = item.price === null;
+  const isInBasket = basketModel.hasItem(item.id);
+
+  const card = new CardPreview(cloneTemplate(cardPreviewTemplate), {
+    onClick: () => events.emit(isInBasket ? "card:delete" : "card:buy", item),
+  });
+
+  modal.render({
+    content: card.render({
+      title: item.title,
+      price: item.price,
+      category: item.category,
+      image: `${CDN_URL}/${item.image}`,
+      description: item.description,
+      btnLabel: isUnavailable ? "Недоступно" : isInBasket ? "Удалить из корзины" : "Купить",
+      isBtnDisabled: isUnavailable,
+    }),
+  });
+
+  modalContainer.classList.add("modal_active");
+  console.log("Открыли карточку: ", item.title, "| в корзине: ", isInBasket);
+});
+
+events.on("card:buy", (item: IProduct) => {
+  basketModel.addItem(item);
+  header.render({ counter: basketModel.getAmount() });
+  modalContainer.classList.remove("modal_active");
+  console.log("Купили: ", item.title, "| товары в корзине: ", basketModel.getItems());
+});
+
+events.on("card:delete", (item: IProduct) => {
+  basketModel.removeItem(item);
+  header.render({ counter: basketModel.getAmount() });
+  modalContainer.classList.remove("modal_active");
+  console.log("Убрали из корзины: ", item.title, "| осталось: ", basketModel.getItems());
+});
+
+console.log("\n\n------Проверка CardBasket и Basket------");
+const cardBasketTemplate = ensureElement<HTMLTemplateElement>("#card-basket");
+const basketTemplate = ensureElement<HTMLTemplateElement>("#basket");
+const basket = new Basket(events, cloneTemplate(basketTemplate));
+
+events.on("basket:delete", (item: IProduct) => {
+  basketModel.removeItem(item);
+  header.render({ counter: basketModel.getAmount() });
+  modal.render({ content: renderBasket() });
+  console.log("Убрали из корзины: ", item.title, "| осталось: ", basketModel.getItems());
+});
+
+function renderBasket(): HTMLElement {
+  const items = basketModel.getItems();
+
+  const cards = items.map((item, idx) => {
+    const card = new CardBasket(cloneTemplate(cardBasketTemplate), {
+      onClick: () => events.emit("basket:delete", item),
+    });
+
+    return card.render({
+      index: idx + 1,
+      title: item.title,
+      price: item.price,
+    });
+  });
+
+  return basket.render({
+    list: cards,
+    total: basketModel.getTotalPrice(),
+    isBtnDisabled: items.length === 0,
+  });
+}
+
+console.log(basket.render());
+
+await communicator
+  .getProductList()
+  .then((res) => {
+    catalogModel.setProducts(res.items);
+    events.emit("catalog:changed");
+    console.log("Каталог, загруженный с сервера: ", catalogModel.getProducts());
+    console.log("Всего товаров: ", res.total);
+  })
+  .catch((err) => {
+    console.log("Ошибка при загрузке данных: ", err);
+  });
