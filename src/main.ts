@@ -20,10 +20,11 @@ import { OrderSuccess } from "./components/views/OrderSuccess.ts";
 import { OrderPaymentForm } from "./components/views/OrderForm/OrderPaymentForm.ts";
 import { OrderContactsForm } from "./components/views/OrderForm/OrderContactsForm.ts";
 
+const events = new EventEmitter();
 const api = new Api(API_URL);
-const catalogModel = new Catalog();
-const basketModel = new BasketModel();
-const buyerModel = new Buyer();
+const catalogModel = new Catalog(events);
+const basketModel = new BasketModel(events);
+const buyerModel = new Buyer(events);
 const communicator = new Communicator(api);
 
 // console.log("\n\n------Проверка класса Communicator------");
@@ -51,24 +52,56 @@ const communicator = new Communicator(api);
 
 // Проверка работы представлений
 console.log("\n\n------Проверка работы представлений------");
+const headerContainer = ensureElement<HTMLElement>(".header");
+const header = new Header(events, headerContainer);
+
+const galleryContainer = ensureElement<HTMLElement>(".gallery");
+const gallery = new Gallery(galleryContainer);
+
+const modalContainer = ensureElement<HTMLElement>(".modal");
+const modal = new Modal(events, modalContainer);
+
+const cardCatalogTemplate = ensureElement<HTMLTemplateElement>("#card-catalog");
+const cardPreviewTemplate = ensureElement<HTMLTemplateElement>("#card-preview");
+const cardBasketTemplate = ensureElement<HTMLTemplateElement>("#card-basket");
+
+const basketTemplate = ensureElement<HTMLTemplateElement>("#basket");
+const basket = new Basket(events, cloneTemplate(basketTemplate));
+
+const orderPaymentTemplate = ensureElement<HTMLTemplateElement>("#order");
+const orderContactsTemplate = ensureElement<HTMLTemplateElement>("#contacts");
+const orderPaymentForm = new OrderPaymentForm(
+  events,
+  cloneTemplate<HTMLFormElement>(orderPaymentTemplate),
+  {
+    onPaymentChange: (payment) => events.emit("order:payment-change", { payment }),
+    onAddressChange: (address) => events.emit("order:address-change", { address }),
+  },
+);
+const orderContactsForm = new OrderContactsForm(
+  events,
+  cloneTemplate<HTMLFormElement>(orderContactsTemplate),
+  {
+    onEmailChange: (email) => events.emit("order:email-change", { email }),
+    onPhoneChange: (phone) => events.emit("order:phone-change", { phone }),
+  },
+);
+
+const orderSuccessTemplate = ensureElement<HTMLTemplateElement>("#success");
+const orderSuccess = new OrderSuccess(events, cloneTemplate(orderSuccessTemplate));
+
 basketModel.clear();
 buyerModel.clear();
 
 console.log("------Проверка Header------");
-const events = new EventEmitter();
 
-const headerContainer = ensureElement<HTMLElement>(".header");
 events.on("basket:open", () => {
   modal.render({ content: renderBasket() });
   modalContainer.classList.add("modal_active");
   console.log("open basket!");
 });
-const header = new Header(events, headerContainer);
-console.log(header.render());
 
 console.log("\n\n------Проверка Gallery------");
-const galleryContainer = ensureElement<HTMLElement>(".gallery");
-const gallery = new Gallery(galleryContainer);
 console.log(gallery.render());
 
 const card1 = createElement<HTMLElement>("div");
@@ -95,19 +128,15 @@ gallery.catalog = secondCards;
 console.log("Изменили карточки: ", ensureAllElements(".gallery__item", galleryContainer));
 
 console.log("\n\n------Проверка Modal------");
-const modalContainer = ensureElement<HTMLElement>(".modal");
 
 events.on("modal:close", () => {
   modalContainer.classList.remove("modal_active");
   console.log("close modal!");
 });
 
-const modal = new Modal(events, modalContainer);
 console.log(modal.render());
 
 console.log("\n\n------Проверка CardCatalog------");
-const cardCatalogTemplate = ensureElement<HTMLTemplateElement>("#card-catalog");
-
 events.on("catalog:changed", () => {
   const itemCards = catalogModel.getProducts().map((item) => {
     const card = new CardCatalog(cloneTemplate(cardCatalogTemplate), {
@@ -126,7 +155,6 @@ events.on("catalog:changed", () => {
 });
 
 console.log("\n\n------Проверка CardPreview------");
-const cardPreviewTemplate = ensureElement<HTMLTemplateElement>("#card-preview");
 function renderPreviewCard(item: IProduct): HTMLElement {
   const isUnavailable = item.price === null;
   const isInBasket = basketModel.hasItem(item.id);
@@ -147,33 +175,37 @@ function renderPreviewCard(item: IProduct): HTMLElement {
 }
 
 events.on("card:select", (item: IProduct) => {
+  catalogModel.setSelectedProduct(item);
+});
+
+events.on("catalog:selected-changed", () => {
+  const item = catalogModel.getSelectedProduct();
+  if (item === null) return;
+
   modal.render({ content: renderPreviewCard(item) });
   modalContainer.classList.add("modal_active");
   console.log("Открыли карточку: ", item.title, "| в корзине: ", basketModel.hasItem(item.id));
 });
 
+events.on("basket:changed", () => {
+  header.render({ counter: basketModel.getAmount() });
+});
+
 events.on("card:buy", (item: IProduct) => {
   basketModel.addItem(item);
-  header.render({ counter: basketModel.getAmount() });
   modal.render({ content: renderPreviewCard(item) });
   console.log("Купили: ", item.title, "| товары в корзине: ", basketModel.getItems());
 });
 
 events.on("card:delete", (item: IProduct) => {
   basketModel.removeItem(item);
-  header.render({ counter: basketModel.getAmount() });
   modal.render({ content: renderPreviewCard(item) });
   console.log("Убрали из корзины: ", item.title, "| осталось: ", basketModel.getItems());
 });
 
 console.log("\n\n------Проверка CardBasket и Basket------");
-const cardBasketTemplate = ensureElement<HTMLTemplateElement>("#card-basket");
-const basketTemplate = ensureElement<HTMLTemplateElement>("#basket");
-const basket = new Basket(events, cloneTemplate(basketTemplate));
-
 events.on("basket:delete", (item: IProduct) => {
   basketModel.removeItem(item);
-  header.render({ counter: basketModel.getAmount() });
   modal.render({ content: renderBasket() });
   console.log("Убрали из корзины: ", item.title, "| осталось: ", basketModel.getItems());
 });
@@ -206,7 +238,6 @@ await communicator
   .getProductList()
   .then((res) => {
     catalogModel.setProducts(res.items);
-    events.emit("catalog:changed");
     console.log("Каталог, загруженный с сервера: ", catalogModel.getProducts());
     console.log("Всего товаров: ", res.total);
   })
@@ -215,19 +246,6 @@ await communicator
   });
 
 console.log("\n\n------Проверка Order------");
-const orderPaymentTemplate = ensureElement<HTMLTemplateElement>("#order");
-const orderContactsTemplate = ensureElement<HTMLTemplateElement>("#contacts");
-
-const orderPaymentForm = new OrderPaymentForm(events, cloneTemplate<HTMLFormElement>(orderPaymentTemplate), {
-  onPaymentChange: (payment) => events.emit("order:payment-change", { payment }),
-  onAddressChange: (address) => events.emit("order:address-change", { address }),
-});
-
-const orderContactsForm = new OrderContactsForm(events, cloneTemplate<HTMLFormElement>(orderContactsTemplate), {
-  onEmailChange: (email) => events.emit("order:email-change", { email }),
-  onPhoneChange: (phone) => events.emit("order:phone-change", { phone }),
-});
-
 function renderOrderPaymentForm(withError = true): HTMLElement {
   const { payment, address } = buyerModel.getInfo();
   const errors = buyerModel.validateInfo();
@@ -255,6 +273,11 @@ function renderOrderContactsForm(withError = true): HTMLElement {
 }
 
 // Оформление заказа
+events.on("buyer:changed", () => {
+  renderOrderPaymentForm();
+  renderOrderContactsForm();
+});
+
 events.on("order:open", () => {
   modal.render({ content: renderOrderPaymentForm(false) });
   modalContainer.classList.add("modal_active");
@@ -263,13 +286,11 @@ events.on("order:open", () => {
 
 events.on("order:payment-change", ({ payment }: { payment: TPayment }) => {
   buyerModel.setInfo({ payment });
-  renderOrderPaymentForm();
   console.log(`Способ оплаты: ${buyerModel.getInfo().payment}`);
 });
 
 events.on("order:address-change", ({ address }: { address: string }) => {
   buyerModel.setInfo({ address });
-  renderOrderPaymentForm();
   console.log(`Адрес: ${buyerModel.getInfo().address}`);
 });
 
@@ -281,13 +302,11 @@ events.on("order:next", () => {
 
 events.on("order:email-change", ({ email }: { email: string }) => {
   buyerModel.setInfo({ email });
-  renderOrderContactsForm();
   console.log(`Email: ${buyerModel.getInfo().email}`);
 });
 
 events.on("order:phone-change", ({ phone }: { phone: string }) => {
   buyerModel.setInfo({ phone });
-  renderOrderContactsForm();
   console.log(`Телефон: ${buyerModel.getInfo().phone}`);
 });
 
@@ -307,9 +326,6 @@ events.on("order:pay", () => {
 
       basketModel.clear();
       buyerModel.clear();
-      header.render({ counter: basketModel.getAmount() });
-      renderOrderPaymentForm(false);
-      renderOrderContactsForm(false);
 
       console.log("Заказ создан: ", res);
     })
@@ -319,9 +335,6 @@ events.on("order:pay", () => {
 });
 
 console.log("\n\n------Проверка OrderSuccess------");
-const orderSuccessTemplate = ensureElement<HTMLTemplateElement>("#success");
-const orderSuccess = new OrderSuccess(events, cloneTemplate(orderSuccessTemplate));
-
 events.on("order:complete", () => {
   modalContainer.classList.remove("modal_active");
   console.log("Заказ оформлен!");
