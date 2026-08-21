@@ -4,7 +4,7 @@ import { IEvents } from "../../base/Events";
 import { OrderForm } from "./OrderForm";
 
 type TOrderPaymentForm = Pick<IBuyer, "payment" | "address"> & {
-  isBtnDisabled: boolean;
+  isNextButtonDisabled: boolean;
 };
 
 export interface IOrderPaymentActions {
@@ -57,7 +57,7 @@ export class OrderPaymentForm extends OrderForm<TOrderPaymentForm> {
     this.addressInput.value = value;
   }
 
-  set isBtnDisabled(value: boolean) {
+  set isNextButtonDisabled(value: boolean) {
     this.nextButton.disabled = value;
   }
 }

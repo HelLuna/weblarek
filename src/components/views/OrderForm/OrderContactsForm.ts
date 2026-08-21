@@ -4,7 +4,7 @@ import { IEvents } from "../../base/Events";
 import { OrderForm } from "./OrderForm";
 
 type TOrderContactsForm = Pick<IBuyer, "email" | "phone"> & {
-  isBtnDisabled: boolean;
+  isPayButtonDisabled: boolean;
 };
 
 export interface IOrderContactsActions {
@@ -50,7 +50,7 @@ export class OrderContactsForm extends OrderForm<TOrderContactsForm> {
     this.phoneInput.value = value;
   }
 
-  set isBtnDisabled(value: boolean) {
+  set isPayButtonDisabled(value: boolean) {
     this.payButton.disabled = value;
   }
 }

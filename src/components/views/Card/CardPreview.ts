@@ -1,13 +1,12 @@
-import { IProduct } from "../../../types";
+import { IProduct, TCategoryKey } from "../../../types";
 import { categoryMap } from "../../../utils/constants";
 import { ensureElement } from "../../../utils/utils";
 import { Card, ICardActions } from "./Card";
 
-type TCategoryKey = keyof typeof categoryMap;
-type TBtnLabel = "Купить" | "Удалить из корзины" | "Недоступно";
+type TButtonLabel = "Купить" | "Удалить из корзины" | "Недоступно";
 type TCardPreview = Pick<IProduct, "image" | "category" | "description"> & {
-  btnLabel: TBtnLabel;
-  isBtnDisabled: boolean;
+  buttonLabel: TButtonLabel;
+  isBuyButtonDisabled: boolean;
 };
 
 export class CardPreview extends Card<TCardPreview> {
@@ -45,11 +44,11 @@ export class CardPreview extends Card<TCardPreview> {
     this.descriptionElement.textContent = value;
   }
 
-  set btnLabel(value: TBtnLabel) {
+  set buttonLabel(value: TButtonLabel) {
     this.buyButton.textContent = value;
   }
 
-  set isBtnDisabled(value: boolean) {
+  set isBuyButtonDisabled(value: boolean) {
     this.buyButton.disabled = value;
   }
 }

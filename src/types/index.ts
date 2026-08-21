@@ -1,3 +1,5 @@
+import { categoryMap } from "../utils/constants";
+
 export type ApiPostMethods = "POST" | "PUT" | "DELETE";
 
 export interface IApi {
@@ -47,3 +49,5 @@ export type TBuyerError = {
   phone?: string;
   address?: string;
 };
+
+export type TCategoryKey = keyof typeof categoryMap;

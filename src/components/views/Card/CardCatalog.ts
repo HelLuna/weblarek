@@ -1,9 +1,8 @@
-import { IProduct } from "../../../types";
+import { IProduct, TCategoryKey } from "../../../types";
 import { categoryMap } from "../../../utils/constants";
 import { ensureElement } from "../../../utils/utils";
 import { Card, ICardActions } from "./Card";
 
-type TCategoryKey = keyof typeof categoryMap;
 type TCardCatalog = Pick<IProduct, "category" | "image">;
 
 export class CardCatalog extends Card<TCardCatalog> {

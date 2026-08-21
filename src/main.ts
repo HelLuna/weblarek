@@ -86,21 +86,21 @@ function renderPreviewCard(): HTMLElement {
     category: item.category,
     image: `${CDN_URL}/${item.image}`,
     description: item.description,
-    btnLabel: isUnavailable ? "Недоступно" : isInBasket ? "Удалить из корзины" : "Купить",
-    isBtnDisabled: isUnavailable,
+    buttonLabel: isUnavailable ? "Недоступно" : isInBasket ? "Удалить из корзины" : "Купить",
+    isBuyButtonDisabled: isUnavailable,
   });
 }
 
 function renderBasket(): HTMLElement {
   const items = basketModel.getItems();
 
-  const cards = items.map((item, idx) => {
+  const cards = items.map((item, index) => {
     const card = new CardBasket(cloneTemplate(cardBasketTemplate), {
       onClick: () => events.emit("basket:delete", item),
     });
 
     return card.render({
-      index: idx + 1,
+      index: index + 1,
       title: item.title,
       price: item.price,
     });
@@ -109,7 +109,7 @@ function renderBasket(): HTMLElement {
   return basket.render({
     list: cards,
     total: basketModel.getTotalPrice(),
-    isBtnDisabled: items.length === 0,
+    isButtonDisabled: items.length === 0,
   });
 }
 
@@ -122,7 +122,7 @@ function renderOrderPaymentForm(withError = true): HTMLElement {
     payment,
     address,
     error: withError ? (error ?? "") : "",
-    isBtnDisabled: error !== undefined,
+    isNextButtonDisabled: error !== undefined,
   });
 }
 
@@ -135,7 +135,7 @@ function renderOrderContactsForm(withError = true): HTMLElement {
     email,
     phone,
     error: withError ? (error ?? "") : "",
-    isBtnDisabled: error !== undefined,
+    isPayButtonDisabled: error !== undefined,
   });
 }
 
@@ -164,7 +164,6 @@ events.on("catalog:selected-changed", () => {
 events.on("basket:changed", () => {
   header.render({ counter: basketModel.getAmount() });
   renderBasket();
-  renderPreviewCard();
 });
 
 events.on("buyer:changed", () => {
@@ -187,10 +186,12 @@ events.on("card:select", (item: IProduct) => {
 
 events.on("card:buy", (item: IProduct) => {
   basketModel.addItem(item);
+  modal.render({ isActive: false });
 });
 
 events.on("card:delete", (item: IProduct) => {
   basketModel.removeItem(item);
+  modal.render({ isActive: false });
 });
 
 events.on("basket:delete", (item: IProduct) => {
@@ -236,7 +237,7 @@ events.on("order:pay", () => {
       buyerModel.clear();
     })
     .catch((err) => {
-      console.log("Ошибка при создании заказа: ", err);
+      console.error("Ошибка при создании заказа: ", err);
     });
 });
 
@@ -251,5 +252,5 @@ await communicator
     catalogModel.setProducts(res.items);
   })
   .catch((err) => {
-    console.log("Ошибка при загрузке данных: ", err);
+    console.error("Ошибка при загрузке данных: ", err);
   });

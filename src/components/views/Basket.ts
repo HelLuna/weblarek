@@ -5,7 +5,7 @@ import { IEvents } from "../base/Events";
 interface IBasket {
   list: HTMLElement[];
   total: number;
-  isBtnDisabled: boolean;
+  isButtonDisabled: boolean;
 }
 
 export class Basket extends Component<IBasket> {
@@ -33,7 +33,7 @@ export class Basket extends Component<IBasket> {
     this.totalElement.textContent = `${value.toLocaleString("ru-RU")} синапсов`;
   }
 
-  set isBtnDisabled(value: boolean) {
+  set isButtonDisabled(value: boolean) {
     this.orderButton.disabled = value;
   }
 }

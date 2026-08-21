@@ -137,7 +137,7 @@ interface IProduct {
 
 ```typescript
 interface IBuyer {
-  payment: TPayment; // тип оплаты ("card" | "cash" | "")
+  payment: TPayment | ""; // тип оплаты ("card" | "cash" | "")
   email: string; // электронная почта покупателя
   phone: string; // номер телефона покупателя
   address: string; // адрес покупателя
@@ -195,7 +195,7 @@ interface IBuyer {
 
 Конструктор:
 
-- `constructor(protected events: IEvents, payment: TPayment = "", email: string = "", phone: string = "", address: string = "")` - передаются брокер событий и данные покупателя: выбранный тип оплаты, email, номер телефона и адрес.
+- `constructor(protected events: IEvents, payment: TPayment | "" = "", email: string = "", phone: string = "", address: string = "")` - передаются брокер событий и данные покупателя: выбранный тип оплаты, email, номер телефона и адрес.
 
 Поля класса:
 
@@ -304,7 +304,7 @@ interface IGallery {
 ```typescript
 interface IModal {
   content: HTMLElement; // HTML-элемент, в котором будет отрисован контент
-  isActive: boolean; // открыто ли окно в данные момент
+  isActive: boolean; // открыто ли окно в данный момент
 }
 ```
 
@@ -376,15 +376,15 @@ type TCardCatalog = Pick<IProduct, "category" | "image">; // категория 
 - `set image(value: string)` - устанавливает картинку товара в `imageElement` при помощи метода `setImage` из класса `Component`.
 - `set category(value: string)` - устанавливает товару указанную категорию в текстовое содержимое `categoryElement` и переключает модификатор фона согласно объекту `categoryMap`.
 - `set description(value: string)` - устанавливает описание товара в текстовое содержимое `descriptionElement`.
-- `set btnLabel(value: TBtnLabel)` - устанавливает текст внутрь кнопки `buyButton`. `value` может принимать одно из следующих значений, указанных в `TBtnLabel`: "Купить", "Удалить из корзины", "Недоступно".
-- `set isBtnDisabled(value: boolean)` - устанавливает атрибут `disabled` у элемента `buyButton` в зависимости от переданного значения.
+- `set buttonLabel(value: TButtonLabel)` - устанавливает текст внутрь кнопки `buyButton`. `value` может принимать одно из следующих значений, указанных в `TButtonLabel`: "Купить", "Удалить из корзины", "Недоступно".
+- `set isBuyButtonDisabled(value: boolean)` - устанавливает атрибут `disabled` у элемента `buyButton` в зависимости от переданного значения.
 
 Данные для передачи в **Card** и объединения с **Component**:
 
 ```typescript
 type TCardPreview = Pick<IProduct, "image" | "category" | "description"> & {
-  btnLabel: TBtnLabel; // текст для кнопки покупки
-  isBtnDisabled: boolean; // состояние атрибута 'disabled' у кнопки покупки
+  buttonLabel: TButtonLabel; // текст для кнопки покупки
+  isBuyButtonDisabled: boolean; // состояние атрибута 'disabled' у кнопки покупки
 };
 ```
 
@@ -431,7 +431,7 @@ type TCardBasket = {
 
 - `set list(items: HTMLElement[])` - заменяет содержимое корзины и устанавливает новый массив с выбранными товарами в содержимое `listElement`.
 - `set total(value: number)` - устанавливает переданное значение в качестве общей суммы товаров в элементе `totalElement`.
-- `set isBtnDisabled(value: boolean)` - устанавливает значение атрибута `disabled` у элемента `orderButton` в зависимости от переданного значения.
+- `set isButtonDisabled(value: boolean)` - устанавливает значение атрибута `disabled` у элемента `orderButton` в зависимости от переданного значения.
 
 Данные для передачи в **Component**:
 
@@ -439,7 +439,7 @@ type TCardBasket = {
 interface IBasket {
   list: HTMLElement[]; // список элементов корзины
   total: number; // общая сумма товаров в корзине
-  isBtnDisabled: boolean; // состояние атрибута 'disabled' у кнопки
+  isButtonDisabled: boolean; // состояние атрибута 'disabled' у кнопки
 }
 ```
 
@@ -486,13 +486,13 @@ interface IOrderForm {
 
 - `set payment(value: TPayment | "")` - устанавливает выбранный способ оплаты в зависимости от переданного значения.
 - `set address(value: string)` - устанавливает значение адреса в поле `addressInput`. Необходимо, например, для очистки поля после оформления заказа.
-- `set isBtnDisabled(value: boolean)` - устанавливает значение атрибута `disabled` у элемента `nextButton` в зависимости от переданного значения.
+- `set isNextButtonDisabled(value: boolean)` - устанавливает значение атрибута `disabled` у элемента `nextButton` в зависимости от переданного значения.
 
 Данные для передачи в **OrderForm** и объединения с **Component**:
 
 ```typescript
 type TOrderPaymentForm = Pick<IBuyer, "payment" | "address"> & {
-  isBtnDisabled: boolean; // состояние 'disabled' у кнопки продолжения оформления
+  isNextButtonDisabled: boolean; // состояние 'disabled' у кнопки продолжения оформления
 };
 ```
 
@@ -514,13 +514,13 @@ type TOrderPaymentForm = Pick<IBuyer, "payment" | "address"> & {
 
 - `set email(value: string)` - устанавливает переданное значение email в поле `emailInput`.
 - `set phone(value: string)` - устанавливает значение номера телефона в поле `phoneInput`.
-- `set isBtnDisabled(value: boolean)` - устанавливает значение атрибута `disabled` у элемента `payButton`.
+- `set isPayButtonDisabled(value: boolean)` - устанавливает значение атрибута `disabled` у элемента `payButton`.
 
 Данные для передачи в **OrderForm** и объединения с **Component**:
 
 ```typescript
 type TOrderContactsForm = Pick<IBuyer, "email" | "phone"> & {
-  isBtnDisabled: boolean; // состояние 'disabled' у кнопки оплаты заказа
+  isPayButtonDisabled: boolean; // состояние 'disabled' у кнопки оплаты заказа
 };
 ```
 
@@ -558,7 +558,7 @@ interface IOrderSuccess {
 | Событие                    | Класс     | Когда генерируется                                                     |
 | -------------------------- | --------- | ---------------------------------------------------------------------- |
 | `catalog:changed`          | `Catalog` | Сохраняется новый массив товаров методом `setProducts()`               |
-| `catalog:selected-changed` | `Catalog` | Меняется товар, выбранный для просмотра методом `setSelectedProduct()` |
+| `catalog:selected-changed` | `Catalog` | Меняется товар, выбранный для просмотра методом `setSelectedProduct()` и открывает модальное окно |
 | `basket:changed`           | `Basket`  | Меняется содержимое корзины (`addItem()`, `removeItem()`, `clear()`)   |
 | `buyer:changed`            | `Buyer`   | Меняются данные о покупателе (`setInfo()`, `clear()`)                  |
 
@@ -567,8 +567,8 @@ interface IOrderSuccess {
 **Генерируются классом через брокер событий**:
 | Событие | Класс | Когда генерируется | Действие подписчика |
 | --- | --- | --- | --- |
-| `basket:open` | `Header` | Клик по кнопке корзины в шапке | Собирает содержимое корзины и открывает модальное окно, добавляя модификатор `modal_active` |
-| `modal:close` | `Modal` | Клик по крестику или вне окна | Снимает модификатор `modal_active` |
+| `basket:open` | `Header` | Клик по кнопке корзины в шапке | Собирает содержимое корзины и открывает модальное окно (`isActive: true`) |
+| `modal:close` | `Modal` | Клик по крестику или вне окна | Закрывает модальное окно (`isActive: false`) |
 | `order:open` | `Basket` | Клик по кнопке **"Оформить"** | Открывает первую форму оформления |
 | `order:next` | `OrderPaymentForm` | Отправка формы кнопкой **"Далее"** | Показывает вторую форму оформления |
 | `order:pay` | `OrderContactsForm` | Отправка формы кнопкой **"Оплатить"** | Отправляет заказ на сервер, показывает `OrderSuccess`, очищает корзину, данные покупателя и обе формы |
@@ -577,9 +577,9 @@ interface IOrderSuccess {
 **Генерируются презентером из обработчика, переданного в конструктор**:
 | Событие | Обработчик | Когда генерируется | Действие подписчика |
 | --- | --- | --- | --- |
-| `card:select` | `onClick` в `CardCatalog` | Клик по карточке в каталоге | Создаёт `CardPreview` с помощью функции `renderPreviewCard` и открывает модальное окно с товаром |
-| `card:buy` | `onClick` в `CardPreview` | Клик по кнопке **"Купить"** | Добавляет товар в корзину, перерисовывает счётчик и выбранный товар |
-| `card:delete` | `onClick` в `CardPreview` | Клик по кнопке **"Удалить из корзины"** | Удаляет товар из корзины, перерисовывает счётчик и выбранный товар |
+| `card:select` | `onClick` в `CardCatalog` | Клик по карточке в каталоге | Сохраняет выбранный товар в модель каталога |
+| `card:buy` | `onClick` в `CardPreview` | Клик по кнопке **"Купить"** | Добавляет товар в корзину и закрывает модальное окно |
+| `card:delete` | `onClick` в `CardPreview` | Клик по кнопке **"Удалить из корзины"** | Удаляет товар из корзины и закрывает модальное окно |
 | `basket:delete` | `onClick` в `CardBasket` | Клик по кнопке удаления у товара в корзине | Удаляет товар, обновляет счётчик и перерисовывает корзину |
 | `order:payment-change` | `onPaymentChange` в `OrderPaymentForm` | Клик по кнопке **"Онлайн"** или **"При получении"** | Сохраняет способ оплаты и перерисовывает форму с подсветкой кнопки и текстом ошибки (функция `renderOrderPaymentForm`) |
 | `order:address-change` | `onAddressChange` в `OrderPaymentForm` | Ввод в поле адреса | Сохраняет адрес и перерисовывает форму |
@@ -597,7 +597,7 @@ interface IOrderSuccess {
 
 Перерисовка Представлений происходит только в двух случаях:
 
-- когда меняются данные моделей при помощи методов `catalog:changed`, `catalog:selected-changed`, `basket:changed`, `buyer:changed`;
+- когда меняются данные моделей при помощи событий `catalog:changed`, `catalog:selected-changed`, `basket:changed`, `buyer:changed`;
 - когда обрабатываются события открытия модального окна `basket:open`, `order:open`, `order:next`, а также показ окна успешного заказа после ответа сервера в `order:pay`.
 
 Презентер обрабатывает события и не порождает их. Единственные вызовы `emit` в `main.ts` находятся внутри объектов `actions`, которые передаются в конструкторы карточек и форм. Собрать такой обработчик можно только в месте создания компонента, то есть в Презентере.
