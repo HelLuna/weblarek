@@ -1,9 +1,4 @@
-import {
-  TProductListResponse,
-  TOrderRequest,
-  TOrderResponse,
-  IApi,
-} from "../../types/index.ts";
+import { TProductListResponse, TOrderRequest, TOrderResponse, IApi } from "../../types/index.ts";
 
 export class Communicator {
   private api: IApi;

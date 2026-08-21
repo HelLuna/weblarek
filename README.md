@@ -209,7 +209,7 @@ interface IBuyer {
 - `setInfo(newData: Partial<IBuyer>): void` - сохраняет переданные данные в модель.
 - `getInfo(): IBuyer` - возвращает все данные покупателя в виде объекта.
 - `clear(): void` - очищает данные покупателя.
-- `validateInfo(): TBuyerError` - производит валидацию данных. Возвращает объект типа `TBuyerError`, в котором могут присутствовать поля, соответствующие полям класса. Значения этих полей - текст ошибки. Если объект пуст, то ошибок не обнаружено.
+- `validateInfo(): TValidationErrors` - производит валидацию данных. Возвращает объект типа `TValidationErrors`, в котором могут присутствовать поля, соответствующие полям класса. Значения этих полей - текст ошибки. Если объект пуст, то ошибок не обнаружено.
 
 ### Слой коммуникации
 
@@ -445,7 +445,7 @@ interface IBasket {
 
 #### Класс OrderForm
 
-Родительский абстрактный компонент формы оформления заказа. Отвечает за отображение общих элементов - текста ошибки. Самостоятельно не используется, от него наследуются `OrderPaymentForm` и `OrderContactsForm`. Класс является дженериком и принимает в переменной `T` тип с дополнительными данными класса-наследника. В `Component` передаётся объединение `IOrderForm & T`.
+Родительский абстрактный компонент формы оформления заказа. Отвечает за отображение общих элементов - текста ошибки и кнопок отправки форм (**"Далее"** и **"Оплатить"**). Самостоятельно не используется, от него наследуются `OrderPaymentForm` и `OrderContactsForm`. Класс является дженериком и принимает в переменной `T` тип с дополнительными данными класса-наследника. В `Component` передаётся объединение `IOrderForm & T`.
 
 Конструктор:
 
@@ -454,16 +454,19 @@ interface IBasket {
 Поля класса:
 
 - `errorElement: HTMLElement` - ссылка на элемент, в котором отображается текст ошибки при заполнении форм.
+- `submitButton: HTMLButtonElement` - ссылка на кнопку отправки формы.
 
 Методы класса:
 
 - `set error(value: string)` - устанавливает текст соответствующей ошибки в текстовое содержимое `errorElement`.
+- `set isButtonDisabled(value: boolean)` - устанавливает значение атрибута `disabled` у элемента `submitButton` в зависимости от переданного значения
 
 Данные для передачи в **Component**:
 
 ```typescript
 interface IOrderForm {
   error: string; // текст ошибки
+  isButtonDisabled: boolean; // состояние 'disabled' у кнопки отправки формы
 }
 ```
 
@@ -480,20 +483,16 @@ interface IOrderForm {
 - `onlinePaymentButton: HTMLButtonElement` - ссылка на кнопку выбора оплаты "Онлайн".
 - `cashPaymentButton: HTMLButtonElement` - ссылка на кнопку выбора оплаты "При получении".
 - `addressInput: HTMLInputElement` - ссылка на поле ввода адреса покупателя.
-- `nextButton: HTMLButtonElement` - ссылка на кнопку перехода к следующему этапу оформления заказа.
 
 Методы класса:
 
 - `set payment(value: TPayment | "")` - устанавливает выбранный способ оплаты в зависимости от переданного значения.
 - `set address(value: string)` - устанавливает значение адреса в поле `addressInput`. Необходимо, например, для очистки поля после оформления заказа.
-- `set isNextButtonDisabled(value: boolean)` - устанавливает значение атрибута `disabled` у элемента `nextButton` в зависимости от переданного значения.
 
 Данные для передачи в **OrderForm** и объединения с **Component**:
 
 ```typescript
-type TOrderPaymentForm = Pick<IBuyer, "payment" | "address"> & {
-  isNextButtonDisabled: boolean; // состояние 'disabled' у кнопки продолжения оформления
-};
+type TOrderPaymentForm = Pick<IBuyer, "payment" | "address">; // тип оплаты и адрес из IBuyer
 ```
 
 #### Класс OrderContactsForm
@@ -508,20 +507,16 @@ type TOrderPaymentForm = Pick<IBuyer, "payment" | "address"> & {
 
 - `emailInput: HTMLInputElement` - ссылка на поле ввода электронной почты покупателя.
 - `phoneInput: HTMLInputElement` - ссылка на поле ввода контактного номера телефона.
-- `payButton: HTMLButtonElement` - ссылка на кнопку окончания оформления заказа.
 
 Методы класса:
 
 - `set email(value: string)` - устанавливает переданное значение email в поле `emailInput`.
 - `set phone(value: string)` - устанавливает значение номера телефона в поле `phoneInput`.
-- `set isPayButtonDisabled(value: boolean)` - устанавливает значение атрибута `disabled` у элемента `payButton`.
 
 Данные для передачи в **OrderForm** и объединения с **Component**:
 
 ```typescript
-type TOrderContactsForm = Pick<IBuyer, "email" | "phone"> & {
-  isPayButtonDisabled: boolean; // состояние 'disabled' у кнопки оплаты заказа
-};
+type TOrderContactsForm = Pick<IBuyer, "email" | "phone">; // email и номер телефона из IBuyer
 ```
 
 #### Класс OrderSuccess
@@ -555,12 +550,12 @@ interface IOrderSuccess {
 
 #### События в Моделях данных (models):
 
-| Событие                    | Класс     | Когда генерируется                                                     |
-| -------------------------- | --------- | ---------------------------------------------------------------------- |
-| `catalog:changed`          | `Catalog` | Сохраняется новый массив товаров методом `setProducts()`               |
+| Событие                    | Класс     | Когда генерируется                                                                                |
+| -------------------------- | --------- | ------------------------------------------------------------------------------------------------- |
+| `catalog:changed`          | `Catalog` | Сохраняется новый массив товаров методом `setProducts()`                                          |
 | `catalog:selected-changed` | `Catalog` | Меняется товар, выбранный для просмотра методом `setSelectedProduct()` и открывает модальное окно |
-| `basket:changed`           | `Basket`  | Меняется содержимое корзины (`addItem()`, `removeItem()`, `clear()`)   |
-| `buyer:changed`            | `Buyer`   | Меняются данные о покупателе (`setInfo()`, `clear()`)                  |
+| `basket:changed`           | `Basket`  | Меняется содержимое корзины (`addItem()`, `removeItem()`, `clear()`)                              |
+| `buyer:changed`            | `Buyer`   | Меняются данные о покупателе (`setInfo()`, `clear()`)                                             |
 
 #### События в Представлениях (views):
 

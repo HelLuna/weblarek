@@ -7,7 +7,7 @@ import { Catalog } from "./components/models/Catalog.ts";
 import { IProduct, TPayment } from "./types/index.ts";
 import { Basket as BasketModel } from "./components/models/Basket.ts";
 import { Buyer } from "./components/models/Buyer.ts";
-import { Communicator } from "./components/models/Communicator.ts";
+import { Communicator } from "./components/communicator/Communicator.ts";
 import { Api } from "./components/base/Api.ts";
 
 import { Header } from "./components/views/Header.ts";
@@ -113,29 +113,31 @@ function renderBasket(): HTMLElement {
   });
 }
 
-function renderOrderPaymentForm(withError = true): HTMLElement {
+function renderOrderPaymentForm(): HTMLElement {
   const { payment, address } = buyerModel.getInfo();
   const errors = buyerModel.validateInfo();
   const error = errors.payment ?? errors.address;
+  const withError = errors.payment && errors.address ? false : true;
 
   return orderPaymentForm.render({
     payment,
     address,
     error: withError ? (error ?? "") : "",
-    isNextButtonDisabled: error !== undefined,
+    isButtonDisabled: error !== undefined,
   });
 }
 
-function renderOrderContactsForm(withError = true): HTMLElement {
+function renderOrderContactsForm(): HTMLElement {
   const { email, phone } = buyerModel.getInfo();
   const errors = buyerModel.validateInfo();
   const error = errors.email ?? errors.phone;
+  const withError = errors.email && errors.phone ? false : true;
 
   return orderContactsForm.render({
     email,
     phone,
     error: withError ? (error ?? "") : "",
-    isPayButtonDisabled: error !== undefined,
+    isButtonDisabled: error !== undefined,
   });
 }
 
@@ -199,7 +201,7 @@ events.on("basket:delete", (item: IProduct) => {
 });
 
 events.on("order:open", () => {
-  modal.render({ content: renderOrderPaymentForm(false), isActive: true });
+  modal.render({ content: renderOrderPaymentForm(), isActive: true });
 });
 
 events.on("order:payment-change", ({ payment }: { payment: TPayment }) => {
@@ -211,7 +213,7 @@ events.on("order:address-change", ({ address }: { address: string }) => {
 });
 
 events.on("order:next", () => {
-  modal.render({ content: renderOrderContactsForm(false) });
+  modal.render({ content: renderOrderContactsForm() });
 });
 
 events.on("order:email-change", ({ email }: { email: string }) => {

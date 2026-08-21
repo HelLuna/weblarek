@@ -1,4 +1,4 @@
-import { TPayment, IBuyer, TBuyerError } from "../../types/index.ts";
+import { TPayment, IBuyer, TValidationErrors } from "../../types/index.ts";
 import { IEvents } from "../base/Events.ts";
 
 export class Buyer {
@@ -58,8 +58,8 @@ export class Buyer {
     this.events.emit("buyer:changed");
   }
 
-  validateInfo(): TBuyerError {
-    const errors: TBuyerError = {};
+  validateInfo(): TValidationErrors {
+    const errors: TValidationErrors = {};
 
     if (!this.payment) {
       errors.payment = "Не выбран способ оплаты";

@@ -4,11 +4,7 @@ export type ApiPostMethods = "POST" | "PUT" | "DELETE";
 
 export interface IApi {
   get<T extends object>(uri: string): Promise<T>;
-  post<T extends object>(
-    uri: string,
-    data: object,
-    method?: ApiPostMethods,
-  ): Promise<T>;
+  post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
 }
 
 export type TProductListResponse = {
@@ -36,6 +32,7 @@ export interface IProduct {
 }
 
 export type TPayment = "card" | "cash";
+
 export interface IBuyer {
   payment: TPayment | "";
   email: string;
@@ -43,11 +40,6 @@ export interface IBuyer {
   address: string;
 }
 
-export type TBuyerError = {
-  payment?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-};
+export type TValidationErrors = Partial<Record<keyof IBuyer, string>>;
 
 export type TCategoryKey = keyof typeof categoryMap;
