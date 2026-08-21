@@ -4,6 +4,7 @@ import { IEvents } from "../base/Events";
 
 interface IModal {
   content: HTMLElement;
+  isActive: boolean;
 }
 
 export class Modal extends Component<IModal> {
@@ -29,5 +30,9 @@ export class Modal extends Component<IModal> {
 
   set content(element: HTMLElement) {
     this.contentElement.replaceChildren(element);
+  }
+
+  set isActive(value: boolean) {
+    this.container.classList.toggle("modal_active", value);
   }
 }

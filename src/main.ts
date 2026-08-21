@@ -63,19 +63,24 @@ const orderContactsForm = new OrderContactsForm(
   },
 );
 
-// Переменная для записи того, что сейчас показано в модельном окне
-let modalContent: "preview" | "basket" | null = null;
-
 // Функции для рендера некоторых компонентов
-function renderPreviewCard(item: IProduct): HTMLElement {
+const cardPreview = new CardPreview(cloneTemplate(cardPreviewTemplate), {
+  onClick: () => {
+    const item = catalogModel.getSelectedProduct();
+    if (item === null) return;
+
+    events.emit(basketModel.hasItem(item.id) ? "card:delete" : "card:buy", item);
+  },
+});
+
+function renderPreviewCard(): HTMLElement {
+  const item = catalogModel.getSelectedProduct();
+  if (item === null) return cardPreview.render();
+
   const isUnavailable = item.price === null;
   const isInBasket = basketModel.hasItem(item.id);
 
-  const card = new CardPreview(cloneTemplate(cardPreviewTemplate), {
-    onClick: () => events.emit(isInBasket ? "card:delete" : "card:buy", item),
-  });
-
-  return card.render({
+  return cardPreview.render({
     title: item.title,
     price: item.price,
     category: item.category,
@@ -153,25 +158,13 @@ events.on("catalog:changed", () => {
 });
 
 events.on("catalog:selected-changed", () => {
-  const item = catalogModel.getSelectedProduct();
-  if (item === null) return;
-
-  modalContent = "preview";
-  modal.render({ content: renderPreviewCard(item) });
-  modalContainer.classList.add("modal_active");
+  modal.render({ content: renderPreviewCard(), isActive: true });
 });
 
 events.on("basket:changed", () => {
   header.render({ counter: basketModel.getAmount() });
-
-  const selectedItem = catalogModel.getSelectedProduct();
-  if (modalContent === "preview" && selectedItem !== null) {
-    modal.render({ content: renderPreviewCard(selectedItem) });
-  }
-
-  if (modalContent === "basket") {
-    modal.render({ content: renderBasket() });
-  }
+  renderBasket();
+  renderPreviewCard();
 });
 
 events.on("buyer:changed", () => {
@@ -181,14 +174,11 @@ events.on("buyer:changed", () => {
 
 // Обработка событий представлений
 events.on("basket:open", () => {
-  modalContent = "basket";
-  modal.render({ content: renderBasket() });
-  modalContainer.classList.add("modal_active");
+  modal.render({ content: renderBasket(), isActive: true });
 });
 
 events.on("modal:close", () => {
-  modalContent = null;
-  modalContainer.classList.remove("modal_active");
+  modal.render({ isActive: false });
 });
 
 events.on("card:select", (item: IProduct) => {
@@ -208,9 +198,7 @@ events.on("basket:delete", (item: IProduct) => {
 });
 
 events.on("order:open", () => {
-  modalContent = null;
-  modal.render({ content: renderOrderPaymentForm(false) });
-  modalContainer.classList.add("modal_active");
+  modal.render({ content: renderOrderPaymentForm(false), isActive: true });
 });
 
 events.on("order:payment-change", ({ payment }: { payment: TPayment }) => {
@@ -243,8 +231,7 @@ events.on("order:pay", () => {
   communicator
     .postOrderData(order)
     .then((res) => {
-      modalContent = null;
-      modal.render({ content: orderSuccess.render({ total: res.total }) });
+      modal.render({ content: orderSuccess.render({ total: res.total }), isActive: true });
       basketModel.clear();
       buyerModel.clear();
     })
@@ -254,8 +241,7 @@ events.on("order:pay", () => {
 });
 
 events.on("order:complete", () => {
-  modalContent = null;
-  modalContainer.classList.remove("modal_active");
+  modal.render({ isActive: false });
 });
 
 // Загрузка данных с сервера
